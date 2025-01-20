@@ -1,11 +1,11 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
 const { stdin, stdout } = process;
 
-const writableStream = fs.createWriteStream(path.join(__dirname, "text.txt"));
+const writableStream = fs.createWriteStream(path.join(__dirname, 'text.txt'));
 
-console.log("Hello, user! Put the text in the text.txt file");
-stdin.on("data", (data) => {
+console.log('Hello, user! Put the text in the text.txt file');
+stdin.on('data', (data) => {
   if (data.toString().trim() === 'exit') {
     process.exit();
   } else {
@@ -13,10 +13,10 @@ stdin.on("data", (data) => {
   }
 });
 
-process.on("exit", () => {
-  stdout.write("Good luck, user!");
+process.on('exit', () => {
+  stdout.write('Good luck, user!');
 });
 
-process.on("SIGINT", () => {
+process.on('SIGINT', () => {
   process.exit();
-})
+});
