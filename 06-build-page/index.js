@@ -81,14 +81,8 @@ function buildStyles() {
 
 function buildTemplate() {
   const readableStream = fs.createReadStream(pathToTemplate);
-  const writableStream = fs.createWriteStream(
-    path.join(pathToDistFolder, 'index.html'),
-  );
 
-  let htmlTemplate = '';
-
-  readableStream.on('data', (data) => (htmlTemplate += data));
-  readableStream.on('end', () => {
+  readableStream.on('data', (htmlTemplate) => {
     fs.readdir(pathToComponents, { withFileTypes: true }, (err, files) => {
       if (err) {
         console.error(err);
@@ -99,12 +93,20 @@ function buildTemplate() {
           const readStream = fs.createReadStream(
             path.join(pathToComponents, file.name),
           );
-          let text = '';
-          readStream.on('data', (data) => (text += data));
-          readStream.on('end', () => {
-            htmlTemplate = htmlTemplate.replaceAll(`{{${fileName}}}`, text);
+          readStream.on('data', (text) => {
+            htmlTemplate = htmlTemplate
+              .toString()
+              .replaceAll(`{{${fileName}}}`, text);
             if (index === files.length - 1) {
-              writableStream.write(htmlTemplate);
+              fs.appendFile(
+                path.join(pathToDistFolder, 'index.html'),
+                htmlTemplate,
+                (err) => {
+                  if (err) {
+                    console.error(err);
+                  }
+                },
+              );
             }
           });
         }
