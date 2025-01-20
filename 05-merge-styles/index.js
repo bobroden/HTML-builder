@@ -15,7 +15,7 @@ fs.readdir(pathToCss, {withFileTypes: true}, (error, files) => {
       let text = '';
       const readableStream = fs.createReadStream(path.join(pathToCss, file.name), "utf-8");
       readableStream.on("data", data => text += data);
-      readableStream.on("end", () => writableStream.write(text));
+      readableStream.on("end", () => writableStream.write(`${text}\n`));
     }
   })
 })

@@ -4,25 +4,32 @@ const path = require("path");
 const pathToFiles = path.join(__dirname, "files");
 const pathToCopyFiles = path.join(__dirname, "files-copy");
 
-function copyDir() {
-  fs.rm(pathToCopyFiles, {recursive: true, force: true}, error => {
-    if(error) {
-      console.error(error);
+function copyDir(fromPath = pathToFiles, toPath = pathToCopyFiles) {
+  fs.mkdir(toPath, err => {
+    if(err) {
+      console.error(err);
     }
-    fs.mkdir(pathToCopyFiles, {recursive: true}, err => {
-      if(error) {
+    fs.readdir(fromPath, {withFileTypes: true}, (err, files) => {
+      if(err) {
         console.error(err);
       }
-      fs.readdir(pathToFiles, (err, files) => {
-        if(err) {
-          console.error(err);
-        }
-        files.forEach(file => {
-          fs.copyFile(path.join(pathToFiles, file), path.join(pathToCopyFiles, file), err => {
-            if(err) {
-              console.error(err);
-            }
-          });
+      files.forEach(file => {
+        const fromFile = path.join(fromPath, file.name);
+        const toFile = path.join(toPath, file.name);
+        fs.stat(fromFile, (err, stat) => {
+          if(err) {
+            console.error(err);
+          }
+          if(stat.isDirectory()) {
+            copyDir(fromFile, toFile);
+          }
+          else {
+            fs.copyFile(fromFile, toFile, err => {
+              if(err) {
+                console.error(err);
+              }
+            });
+          }
         });
       });
     });
