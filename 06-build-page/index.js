@@ -1,4 +1,5 @@
 const fs = require('fs');
+const fsPromises = fs.promises;
 const path = require('path');
 
 const pathToAssets = path.join(__dirname, 'assets');
@@ -81,35 +82,37 @@ function buildStyles() {
 
 function buildTemplate() {
   const readableStream = fs.createReadStream(pathToTemplate, 'utf-8');
+  const writableStream = fs.createWriteStream(
+    path.join(pathToDistFolder, 'index.html'),
+  );
+  let text = '';
 
   readableStream.on('data', (data) => {
-    let text = data.toString();
+    text = data.toString();
     fs.readdir(pathToComponents, { withFileTypes: true }, (err, files) => {
       if (err) {
         console.error(err);
       }
-      files.forEach((file, index) => {
+      const arr = [];
+      files.forEach((file) => {
         if (file.isFile() && path.extname(file.name) === '.html') {
           const fileName = file.name.split('.')[0];
+          arr.push(`{{${fileName}}}`);
+        }
+      });
+      fsPromises.readdir(pathToComponents).then((res) => {
+        res.forEach((item, index) => {
           const readStream = fs.createReadStream(
-            path.join(pathToComponents, file.name),
+            path.join(pathToComponents, item),
             'utf-8',
           );
-          readStream.on('data', (chunk) => {
-            text = text.toString().replaceAll(`{{${fileName}}}`, chunk);
-            if (index === files.length - 1) {
-              fs.appendFile(
-                path.join(pathToDistFolder, 'index.html'),
-                text,
-                (err) => {
-                  if (err) {
-                    console.error(err);
-                  }
-                },
-              );
+          readStream.on('data', (data) => {
+            text = text.replaceAll(arr[index], data);
+            if (!arr.find((item) => text.includes(item))) {
+              writableStream.write(text);
             }
           });
-        }
+        });
       });
     });
   });
